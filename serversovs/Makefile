@@ -1,2 +1,7 @@
-test:
-	gcc server.c -o server
+servermake: server.c
+	gcc -o server server.c -I.
+	./server
+
+clean: 
+	rm server
+
