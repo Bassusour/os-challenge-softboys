@@ -1,6 +1,6 @@
 servermake: server.c
-	gcc -o server server.c -I.
-	./server
+	gcc -o server.o server.c -I.
+	./server.o
 
 clean: 
 	rm server
