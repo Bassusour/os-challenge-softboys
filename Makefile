@@ -1,5 +1,5 @@
 servermake: server.c
-	gcc -o server server.c -I.
+	gcc -o server.o server.c -I.
 
 clean:
 	rm server
