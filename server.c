@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <netdb.h>
 #include <netinet/in.h>
@@ -13,10 +14,12 @@ int main(int argc, char **argv){
     struct sockaddr_in serv_addr, cli_addr;
     int  n;
 
+/*
     if (argc <= 1) {
         perror("ERROR give port");
         exit(1);  
     }
+    */
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -26,7 +29,9 @@ int main(int argc, char **argv){
     }
 
     bzero((char *) &serv_addr, sizeof(serv_addr));
-    portno = atoi(argv[1]);
+    //portno = atoi(argv[1]);
+
+    portno = 5001;
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = INADDR_ANY;
@@ -64,9 +69,5 @@ int main(int argc, char **argv){
       perror("ERROR writing to socket");
       exit(1);
    }
-
-
-    
-    printf("The reverse hash is 367866678");
     return 0;
 }
