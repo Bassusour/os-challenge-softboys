@@ -57,7 +57,6 @@ int main(int argc, char **argv)
     }
     else
         printf("Server listening..\n");
-        printf("%d\n", servaddr.sin_addr.s_addr);
     len = sizeof(cli);
    
     // Accept the data packet from client and verification
@@ -66,26 +65,27 @@ int main(int argc, char **argv)
         printf("server accept failed...\n");
         exit(0);
     }
-    else printf("server accept the client...\n");
+    else { printf("server accept the client...\n"); }
 
     Request req;
 
 
-      uint64_t start, end = 0;
-      uint8_t prio = 0;
-      bzero(buffer, PACKET_REQUEST_SIZE);
-      read(connfd, buffer, sizeof(buffer));
-      memcpy(req.hash, &buffer[PACKET_REQUEST_HASH_OFFSET], 32);
+    uint64_t start = 0;
+    uint64_t end = 0;
+    uint8_t prio = 0;
+    bzero(buffer, PACKET_REQUEST_SIZE);
+    read(connfd, buffer, sizeof(buffer));
+    memcpy(req.hash, &buffer[PACKET_REQUEST_HASH_OFFSET], 32);
       
-      for(int i = 0; i < 4; i++) {
-        start |= (uint64_t)buffer[39-i] << i*8;
-        end |= (uint64_t)buffer[47-i] << i*8;
-      }
+    for (uint64_t i = 0; i < 8; i++) {
+        start = start | ((uint64_t)buffer[39-i] << i*8);
+        end = end | ((uint64_t)buffer[47-i] << i*8);
+    }
 
       start = le64toh(start);
       end = le64toh(end);
 
-    printf("START IS %d END IS %d\n", start, end);
+    printf("START IS %ld END IS %ld\n", start, end);
    
     // After chatting close the socket
     close(sockfd);
