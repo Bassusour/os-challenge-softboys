@@ -7,7 +7,8 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#define MAX 80
+#include <messages.h>
+#include <server.h>
 #define SA struct sockaddr
    
 
@@ -17,6 +18,7 @@ int main(int argc, char **argv)
 {
     int sockfd, connfd, len, portno;
     struct sockaddr_in servaddr, cli;
+    char buffer[PACKET_REQUEST_SIZE];
 
     if (argc <= 1) {
         perror("ERROR give port");
@@ -64,9 +66,26 @@ int main(int argc, char **argv)
         printf("server accept failed...\n");
         exit(0);
     }
-    else
-        printf("server accept the client...\n");
-   
+    else printf("server accept the client...\n");
+
+    Request req;
+
+
+      uint64_t start, end = 0;
+      uint8_t prio = 0;
+      bzero(buffer, PACKET_REQUEST_SIZE);
+      read(connfd, buffer, sizeof(buffer));
+      memcpy(req.hash, &buffer[PACKET_REQUEST_HASH_OFFSET], 32);
+      
+      for(int i = 0; i < 4; i++) {
+        start |= (uint64_t)buffer[39-i] << i*8;
+        end |= (uint64_t)buffer[47-i] << i*8;
+      }
+
+      start = le64toh(start);
+      end = le64toh(end);
+
+    printf("START IS %d END IS %d\n", start, end);
    
     // After chatting close the socket
     close(sockfd);
