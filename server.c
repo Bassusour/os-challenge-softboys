@@ -9,8 +9,35 @@
 #include <sys/types.h>
 #include <messages.h>
 #include <server.h>
+#include <reversehash.h>
 #define SA struct sockaddr
    
+Request new_request(int connfd) {
+    char in_buffer[PACKET_REQUEST_SIZE];
+    Request req;
+    uint64_t start = 0;
+    uint64_t end = 0;
+    uint8_t prio = 0;
+    bzero(in_buffer, PACKET_REQUEST_SIZE);
+    read(connfd, in_buffer, sizeof(in_buffer));
+    memcpy(req.hash, &in_buffer[PACKET_REQUEST_HASH_OFFSET], 32);
+    prio = in_buffer[PACKET_REQUEST_PRIO_OFFSET];
+
+
+      
+    for (uint64_t i = 0; i < 8; i++) {
+        start = start | ((uint64_t)in_buffer[39-i] << i*8);
+        end = end | ((uint64_t)in_buffer[47-i] << i*8);
+    }
+
+    start = le64toh(start);
+    end = le64toh(end);
+    req.start = start;
+    req.end = end;
+    req.priority = prio;
+
+    return req;
+}
 
    
 // Driver function
@@ -18,7 +45,8 @@ int main(int argc, char **argv)
 {
     int sockfd, connfd, len, portno;
     struct sockaddr_in servaddr, cli;
-    char buffer[PACKET_REQUEST_SIZE];
+    char in_buffer[PACKET_REQUEST_SIZE];
+    char out_buffer[PACKET_RESPONSE_SIZE];
 
     if (argc <= 1) {
         perror("ERROR give port");
@@ -41,6 +69,8 @@ int main(int argc, char **argv)
     servaddr.sin_family = AF_INET;
     servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
     servaddr.sin_port = htons(portno);
+
+    setsockopt(sockfd,SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int));
    
     // Binding newly created socket to given IP and verification
     if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0) {
@@ -67,25 +97,25 @@ int main(int argc, char **argv)
     }
     else { printf("server accept the client...\n"); }
 
-    Request req;
+    while(connfd) {
+        if(connfd < 0) {
+            printf("accept failed");
+            break;
+        } else {
+            Request req = new_request(connfd);
+            bzero(out_buffer, PACKET_RESPONSE_SIZE);
 
 
-    uint64_t start = 0;
-    uint64_t end = 0;
-    uint8_t prio = 0;
-    bzero(buffer, PACKET_REQUEST_SIZE);
-    read(connfd, buffer, sizeof(buffer));
-    memcpy(req.hash, &buffer[PACKET_REQUEST_HASH_OFFSET], 32);
-      
-    for (uint64_t i = 0; i < 8; i++) {
-        start = start | ((uint64_t)buffer[39-i] << i*8);
-        end = end | ((uint64_t)buffer[47-i] << i*8);
+            uint64_t ret = reversehash(req.start, req.end, req.hash);
+            if(ret < (uint64_t)0) {
+                printf("idk man\n");
+            }
+            ret = htobe64(ret);
+            memcpy(out_buffer, &ret,sizeof(out_buffer));
+            write(connfd,out_buffer,sizeof(out_buffer));
+        }
+        connfd = accept(sockfd, (SA*)&cli, &len);
     }
-
-      start = le64toh(start);
-      end = le64toh(end);
-
-    printf("START IS %ld END IS %ld\n", start, end);
    
     // After chatting close the socket
     close(sockfd);

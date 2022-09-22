@@ -10,4 +10,6 @@ typedef struct {
     uint8_t priority;
 } Request;
 
+Request new_request(int connfd);
+
 #endif
