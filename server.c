@@ -13,7 +13,7 @@
 #define SA struct sockaddr
    
 Request new_request(int connfd) {
-    char in_buffer[PACKET_REQUEST_SIZE];
+    unsigned char in_buffer[PACKET_REQUEST_SIZE];
     Request req;
     uint64_t start = 0;
     uint64_t end = 0;
