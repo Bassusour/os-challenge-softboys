@@ -10,8 +10,13 @@
 #include <messages.h>
 #include <server.h>
 #include <reversehash.h>
+#include <pthread.h>
+
+
 #define SA struct sockaddr
    
+
+
 Request new_request(int connfd) {
     unsigned char in_buffer[PACKET_REQUEST_SIZE];
     Request req;
@@ -35,11 +40,28 @@ Request new_request(int connfd) {
     req.start = start;
     req.end = end;
     req.priority = prio;
+    req.con = connfd;
 
     return req;
 }
 
-   
+void *hashThread(void * request) {
+    Request req = *(Request*) request; 
+    char out_buffer[PACKET_RESPONSE_SIZE];
+
+    uint64_t ret = reversehash(req.start, req.end, req.hash);
+        if(ret < (uint64_t)0) {
+            printf("idk man\n");
+        }
+        ret = htobe64(ret);
+        memcpy(out_buffer, &ret,sizeof(out_buffer));
+        write(req.con,out_buffer,sizeof(out_buffer));
+    //free(out_buffer);
+    pthread_exit(NULL);
+    return NULL;
+}
+
+
 // Driver function
 int main(int argc, char **argv)
 {
@@ -106,13 +128,17 @@ int main(int argc, char **argv)
             bzero(out_buffer, PACKET_RESPONSE_SIZE);
 
 
-            uint64_t ret = reversehash(req.start, req.end, req.hash);
-            if(ret < (uint64_t)0) {
-                printf("idk man\n");
-            }
-            ret = htobe64(ret);
-            memcpy(out_buffer, &ret,sizeof(out_buffer));
-            write(connfd,out_buffer,sizeof(out_buffer));
+            // uint64_t ret = reversehash(req.start, req.end, req.hash);
+            // if(ret < (uint64_t)0) {
+            //     printf("idk man\n");
+            // }
+            // ret = htobe64(ret);
+            // memcpy(out_buffer, &ret,sizeof(out_buffer));
+            // write(connfd,out_buffer,sizeof(out_buffer));
+            pthread_t thread_id;
+            pthread_create(&thread_id,NULL,hashThread,&req);
+            //pthread_join(thread_id,NULL);
+
         }
         connfd = accept(sockfd, (SA*)&cli, &len);
     }
@@ -120,3 +146,4 @@ int main(int argc, char **argv)
     // After chatting close the socket
     close(sockfd);
 }
+
