@@ -8,6 +8,8 @@ typedef struct {
     uint64_t start;
     uint64_t end;
     uint8_t priority;
+    uint8_t result;
+    int con;
 } Request;
 
 Request new_request(int connfd);
