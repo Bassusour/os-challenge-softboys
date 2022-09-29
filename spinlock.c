@@ -16,7 +16,7 @@ void spinlock_lock(spinlock* lock) {
 }
 
 void spinlock_unlock(spinlock* lock) {
-    assert(*lock == LOCKED);
+    // assert(*lock == LOCKED);
     __sync_val_compare_and_swap(lock,LOCKED,UNLOCKED);
 
     //while(__sync_val_compare_and_swap(lock,LOCKED,UNLOCKED) == LOCKED){

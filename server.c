@@ -13,11 +13,9 @@
 #include <pthread.h>
 #include "linkedlist.h"
 
-
 #define SA struct sockaddr
+
    
-
-
 Request new_request(int connfd) {
     unsigned char in_buffer[PACKET_REQUEST_SIZE];
     Request req;
@@ -46,14 +44,15 @@ Request new_request(int connfd) {
     return req;
 }
 
-void *hashThread(void * anchornode) {
-
-    Request_node * anchor_node = (Request_node*)anchornode;
+void *hashThread(void * input) {
+    Lort lort = *(Lort*) input;
+    Request_node * anchor_node = lort.arg1;
+    int id = lort.arg2;
     
     while(1){
         Request req = get_resuest(anchor_node);
         if(req.start == req.end){
-            sleep(5);
+            sleep(0.1);
         } else{
             //Request req = *(Request*) request; 
             char out_buffer[PACKET_RESPONSE_SIZE];
@@ -78,7 +77,7 @@ void *hashThread(void * anchornode) {
 // Driver function
 int main(int argc, char **argv)
 {
-    int sockfd, connfd, len, portno;
+    int sockfd, connfd, len, portno, threads;
     struct sockaddr_in servaddr, cli;
     char in_buffer[PACKET_REQUEST_SIZE];
     char out_buffer[PACKET_RESPONSE_SIZE];
@@ -99,6 +98,7 @@ int main(int argc, char **argv)
     bzero(&servaddr, sizeof(servaddr));
 
     portno = atoi(argv[1]);
+    threads = atoi(argv[2]);
    
     // assign IP, PORT
     servaddr.sin_family = AF_INET;
@@ -134,15 +134,14 @@ int main(int argc, char **argv)
 
     Request_node * anchor_node = create_anchor_node();
 
-    pthread_t thread_id1 = 1;
-    pthread_create(&thread_id1,NULL,hashThread,anchor_node);
-    pthread_t thread_id2 = 2;
-    pthread_create(&thread_id2,NULL,hashThread,anchor_node);
-     pthread_t thread_id3 = 3;
-    pthread_create(&thread_id3,NULL,hashThread,anchor_node);
-     pthread_t thread_id4 = 4;
-    pthread_create(&thread_id4,NULL,hashThread,anchor_node);
-
+    for (int i = 0; i < threads; ++i) {
+      Lort lort;
+      lort.arg1 = anchor_node;
+      lort.arg2 = i;
+      Lort * lort_pointer = &lort;
+      pthread_t thread_id = i;
+      pthread_create(&thread_id, NULL, hashThread, lort_pointer);
+    }
 
     while(connfd) {
         if(connfd < 0) {

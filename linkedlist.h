@@ -5,6 +5,11 @@ typedef struct Request_node {
     struct Request_node *next;  
 } Request_node;
 
+typedef struct {
+  Request_node * arg1;
+  int arg2;
+} Lort;
+
 Request_node * create_anchor_node();
 
 Request_node *create_node(Request req); 
