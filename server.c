@@ -166,11 +166,12 @@ int main(int argc, char **argv)
             
             // pthread_t thread_id;
             // pthread_create(&thread_id,NULL,hashThread,&req);
-            //pthread_join(thread_id,NULL);
+            // pthread_join(thread_id,NULL);
 
         }
         connfd = accept(sockfd, (SA*)&cli, &len);
     }
+    delete_node(anchor_node);
    
     // After chatting close the socket
     close(sockfd);

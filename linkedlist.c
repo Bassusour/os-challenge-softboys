@@ -3,10 +3,11 @@
 #include "linkedlist.h"
 #include "spinlock.h"
 
-spinlock *lock;
+spinlock lock;
+spinlock* lock_pointer = &lock;
 
 Request_node * create_anchor_node(){
-    spinlock_init(lock);
+    spinlock_init(lock_pointer);
     Request_node *node = (Request_node *)malloc(sizeof(Request_node));
     node->next = NULL;
     return node;
@@ -28,7 +29,7 @@ void delete_node(Request_node *node) {
 }
 
 Request_node *insert_node(Request_node *head, Request_node *node) {
-    spinlock_lock(lock);
+    spinlock_lock(lock_pointer);
     // if(node == NULL)
     //     return NULL;
 
@@ -58,12 +59,12 @@ Request_node *insert_node(Request_node *head, Request_node *node) {
     head->next = node;
     node->next = temp;
 
-    spinlock_unlock(lock);
+    spinlock_unlock(lock_pointer);
     return head;
 }
 
 Request get_resuest(Request_node *head) {
-    spinlock_lock(lock);
+    spinlock_lock(lock_pointer);
     if(head->next == NULL){
         Request req;
         req.start = 1;
@@ -75,6 +76,6 @@ Request get_resuest(Request_node *head) {
 
     head->next = next_node->next;
     delete_node(next_node);
-    spinlock_unlock(lock);
+    spinlock_unlock(lock_pointer);
     return req;
 }
