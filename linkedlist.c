@@ -1,10 +1,19 @@
 #include <stdlib.h>
 #include "server.h"
 #include "linkedlist.h"
+#include "spinlock.h"
 
+spinlock *lock;
+
+Request_node * create_anchor_node(){
+    spinlock_init(lock);
+    Request_node *node = (Request_node *)malloc(sizeof(Request_node));
+    node->next = NULL;
+    return node;
+}
 
 Request_node *create_node(Request req) {
-    Request_node *node = (Request_node *)calloc(1, sizeof(Request_node));
+    Request_node *node = (Request_node *)malloc(sizeof(Request_node));
 
     if(node == NULL)
     return NULL;
@@ -19,36 +28,53 @@ void delete_node(Request_node *node) {
 }
 
 Request_node *insert_node(Request_node *head, Request_node *node) {
+    spinlock_lock(lock);
+    // if(node == NULL)
+    //     return NULL;
 
-    if(node == NULL)
-        return NULL;
+    // if(head == NULL){
+    //     return node;
+    // }
+    // if(head->next == NULL){
+    //     head->next = node;
+    //     return head;
+    // }
+    // if(head->req.priority < head->next->req.priority){
+    //     node->next = head;
+    //     return node;
+    // }
 
-    if(head == NULL){
-        return node;
-    }
-    if(head->next == NULL){
-        head->next = node;
-        return head;
-    }
-    if(head->req.priority < head->next->req.priority){
-        node->next = head;
-        return node;
-    }
-
-    /* Parse through list till position pos */
-    Request_node *prev = head;
-    while(prev->req.priority >= prev->next->req.priority && prev->next != NULL)
-    {
-        prev = prev->next;
-    }
+    // /* Parse through list till position pos */
+    // Request_node *prev = head;
+    // while(prev->req.priority >= prev->next->req.priority && prev->next != NULL)
+    // {
+    //     prev = prev->next;
+    // }
     
-    node->next = prev->next;
-    prev->next = node;
+    // node->next = prev->next;
+    // prev->next = node;
+
+    Request_node *temp = head->next;
+    head->next = node;
+    node->next = temp;
+
+    spinlock_unlock(lock);
     return head;
 }
 
-Request_node *get_node(Request_node *head) {
+Request get_resuest(Request_node *head) {
+    spinlock_lock(lock);
+    if(head->next == NULL){
+        Request req;
+        req.start = 1;
+        req.end = 1;
+        return req;
+    }
+    Request_node * next_node = head->next;
+    Request req = next_node->req;
 
-    
-    return head->next;
+    head->next = next_node->next;
+    delete_node(next_node);
+    spinlock_unlock(lock);
+    return req;
 }
