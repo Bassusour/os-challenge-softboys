@@ -98,7 +98,12 @@ int main(int argc, char **argv)
     bzero(&servaddr, sizeof(servaddr));
 
     portno = atoi(argv[1]);
-    threads = atoi(argv[2]);
+    if(argc <= 2){
+        threads = 4;
+    }else{
+        threads = atoi(argv[2]);
+    }
+    
    
     // assign IP, PORT
     servaddr.sin_family = AF_INET;
