@@ -99,7 +99,7 @@ int main(int argc, char **argv)
 
     portno = atoi(argv[1]);
     if(argc <= 2){
-        threads = 4;
+        threads = 8;
     }else{
         threads = atoi(argv[2]);
     }
