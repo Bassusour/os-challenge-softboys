@@ -46,11 +46,12 @@ Request new_request(int connfd) {
 
 void *hashThread(void * input) {
     Lort lort = *(Lort*) input;
-    Request_node * anchor_node = lort.arg1;
-    int id = lort.arg2;
-    
+    Request_node * anchor_node = lort.anchor_node;
+    int id = lort.id;
+    printf("at thread %d", id);
     while(1){
         Request req = get_resuest(anchor_node);
+        // If empty linkedlist
         if(req.start == req.end){
             sleep(0.1);
         } else{
@@ -103,8 +104,8 @@ int main(int argc, char **argv)
     }else{
         threads = atoi(argv[2]);
     }
-    
    
+
     // assign IP, PORT
     servaddr.sin_family = AF_INET;
     servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -137,22 +138,30 @@ int main(int argc, char **argv)
     }
     else { printf("server accept the client...\n"); }
 
+    printf("here1\n");
+
     Request_node * anchor_node = create_anchor_node();
 
-    for (int i = 0; i < threads; ++i) {
+    printf("here2\n");
+
+    /*for (int i = 0; i < threads; ++i) {
+      printf("asdasd");
       Lort lort;
-      lort.arg1 = anchor_node;
-      lort.arg2 = i;
+      lort.anchor_node = anchor_node;
+      lort.id = i;
       Lort * lort_pointer = &lort;
       pthread_t thread_id = i;
       pthread_create(&thread_id, NULL, hashThread, lort_pointer);
-    }
+    }*/
 
+    
     while(connfd) {
+        // printf("test5");
         if(connfd < 0) {
-            printf("accept failed");
+            // printf("accept failed");
             break;
         } else {
+            printf("asdfsadf\n");
             Request req = new_request(connfd);
             bzero(out_buffer, PACKET_RESPONSE_SIZE);
 
@@ -173,9 +182,11 @@ int main(int argc, char **argv)
             // pthread_join(thread_id,NULL);
 
         }
+        // printf("test2");
         connfd = accept(sockfd, (SA*)&cli, &len);
     }
-    delete_node(anchor_node);
+    // delete_node(anchor_node);
+    // destroy mutex lock here
    
     // After chatting close the socket
     close(sockfd);

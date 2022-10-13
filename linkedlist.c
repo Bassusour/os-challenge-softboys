@@ -1,13 +1,15 @@
 #include <stdlib.h>
+#include <pthread.h>
 #include "server.h"
 #include "linkedlist.h"
 #include "spinlock.h"
+#include <stdio.h>
 
-spinlock lock;
-spinlock* lock_pointer = &lock;
+pthread_mutex_t lock;
 
 Request_node * create_anchor_node(){
-    spinlock_init(lock_pointer);
+    printf("asdfadf");
+    pthread_mutex_init(&lock, NULL);
     Request_node *node = (Request_node *)malloc(sizeof(Request_node));
     node->next = NULL;
     return node;
@@ -29,7 +31,8 @@ void delete_node(Request_node *node) {
 }
 
 Request_node *insert_node(Request_node *head, Request_node *node) {
-    spinlock_lock(lock_pointer);
+    pthread_mutex_lock(&lock);
+    // spinlock_lock(lock_pointer);
     // if(node == NULL)
     //     return NULL;
 
@@ -55,16 +58,29 @@ Request_node *insert_node(Request_node *head, Request_node *node) {
     // node->next = prev->next;
     // prev->next = node;
 
-    Request_node *temp = head->next;
-    head->next = node;
-    node->next = temp;
+    // Highest priority is closest to head
+    Request_node *tmp = head->next;
+    int node_prio = node->req.priority;
+    int current_prio = head->next->req.priority; //doesn't work >:(
 
-    spinlock_unlock(lock_pointer);
+    while(1) {
+      if(head->next == 0 || 
+        node->req.priority >= tmp->req.priority 
+        ) {
+        head->next = node;
+        node->next = tmp;
+        break;
+      } else {
+        tmp = tmp->next;
+      }
+    }
+    pthread_mutex_unlock(&lock);
     return head;
 }
 
+// Takes the node next to head
 Request get_resuest(Request_node *head) {
-    spinlock_lock(lock_pointer);
+    pthread_mutex_lock(&lock);
     if(head->next == NULL){
         Request req;
         req.start = 1;
@@ -73,9 +89,9 @@ Request get_resuest(Request_node *head) {
     }
     Request_node * next_node = head->next;
     Request req = next_node->req;
-
     head->next = next_node->next;
+
     delete_node(next_node);
-    spinlock_unlock(lock_pointer);
+    pthread_mutex_unlock(&lock);
     return req;
 }

@@ -1,13 +1,13 @@
 #include "server.h"
 
 typedef struct Request_node {
-    Request req;            
+    Request req;
     struct Request_node *next;  
 } Request_node;
 
 typedef struct {
-  Request_node * arg1;
-  int arg2;
+  Request_node * anchor_node;
+  int id;
 } Lort;
 
 Request_node * create_anchor_node();
