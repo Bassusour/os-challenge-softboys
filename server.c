@@ -56,7 +56,7 @@ void *hashThread(void *input)
         Request req = get_resuest(anchor_node);
         if (req.start == req.end)
         {
-            sleep(0.1);
+            sleep(1);
         }
         else
         {
@@ -205,7 +205,6 @@ int main(int argc, char **argv)
                 Request_node *new_node = create_node(req);
                 insert_node(anchor_node, new_node);
             }
-
 
             // uint64_t ret = reversehash(req.start, req.end, req.hash);
             // if(ret < (uint64_t)0) {

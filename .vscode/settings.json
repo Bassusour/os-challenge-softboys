@@ -1,5 +1,6 @@
 {
     "files.associations": {
+<<<<<<< HEAD
         "in.h": "c",
         "reversehash.h": "c",
         "ssl.h": "c",
@@ -7,5 +8,9 @@
         "types.h": "c",
         "server.h": "c",
         "stdint.h": "c"
+=======
+        "spinlock.h": "c",
+        "linkedlist.h": "c"
+>>>>>>> priorityLinkesList
     }
 }

@@ -83,10 +83,10 @@ uint64_t oldHashCheck(uint8_t hash[32], hashArrayElem* oldHashResults) {
     for (int i = 0; i < 32; i++) {
         num = (num + hash[i]) % sizeOfCache;
     }
-    printf("%d cache hash num \n", num);
+    //printf("%d cache hash num \n", num);
     while (1) {
         int64_t value = oldHashResults[num].value;
-        printf("%d the check value \n", value);
+        //printf("%d the check value \n", value);
         if (value != 0) {
             if (!memcmp(hash,oldHashResults[num].hash, 32)) {
                 pthread_mutex_unlock(&lockCache);
