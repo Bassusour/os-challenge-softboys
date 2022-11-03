@@ -55,7 +55,7 @@ void *hashThread(void *input)
     while (1)
     {
         //printf("before rq \n");
-        Request req = get_resuest(anchor_node,id);
+        Request req = get_resuest(anchor_node);
         //printf("after rq \n");
         if (req.start == req.end)
         {
