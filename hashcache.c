@@ -7,7 +7,7 @@ pthread_mutex_t lockCache;
 
 
 hashArrayElem* initHashCache() {
-    hashArrayElem* oldHashResults = (hashArrayElem*) calloc(sizeOfCache, sizeof(hashArrayElem));
+    hashArrayElem* oldHashResults = (hashArrayElem*) malloc(sizeOfCache, sizeof(hashArrayElem));
     
     if (pthread_mutex_init(&lockCache, NULL) != 0) {
         return NULL;
@@ -19,7 +19,7 @@ hashArrayElem* initHashCache() {
 void resizeCache(hashArrayElem* oldHashResults) {
     int oldSizeOfCache = sizeOfCache;
     sizeOfCache *= 2;
-    hashArrayElem* newHashResultArray = (hashArrayElem*) calloc(sizeOfCache, sizeof(hashArrayElem));
+    hashArrayElem* newHashResultArray = (hashArrayElem*) malloc(sizeOfCache, sizeof(hashArrayElem));
     
     for (int i = 0; i < oldSizeOfCache; i++) {
         //uint8_t hash[32] = oldHashResults[i].hash;
