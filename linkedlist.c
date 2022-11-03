@@ -8,7 +8,7 @@
 pthread_mutex_t lock;
 
 Request_node * create_anchor_node(){
-    printf("asdfadf");
+    printf("create anchor\n");
     pthread_mutex_init(&lock, NULL);
     Request_node *node = (Request_node *)malloc(sizeof(Request_node));
     node->next = NULL;
@@ -32,6 +32,7 @@ void delete_node(Request_node *node) {
 
 Request_node *insert_node(Request_node *head, Request_node *node) {
     pthread_mutex_lock(&lock);
+    printf("insert node\n");
     // spinlock_lock(lock_pointer);
     // if(node == NULL)
     //     return NULL;
@@ -59,19 +60,29 @@ Request_node *insert_node(Request_node *head, Request_node *node) {
     // prev->next = node;
 
     // Highest priority is closest to head
-    Request_node *tmp = head->next;
+    Request_node *current_node = head->next;
+    printf("test1\n");
+    Request_node *prevNode = head;
+    printf("test2\n");
+
     int node_prio = node->req.priority;
-    int current_prio = head->next->req.priority; //doesn't work >:(
+    printf("test3\n");
+    int current_prio = current_node->req.priority; //fuck
+    
+
+    printf("node_prio: %i, current_prio: %i\n", node_prio, current_prio);
 
     while(1) {
-      if(head->next == 0 || 
-        node->req.priority >= tmp->req.priority 
-        ) {
-        head->next = node;
-        node->next = tmp;
+      if(current_node->next == NULL){   // If at the end of the list
+        current_node->next = node;
+      }
+      if(node->req.priority >= current_node->req.priority){ // Insert in middle og list
+        prevNode->next = node;                              
+        node->next = current_node;
         break;
       } else {
-        tmp = tmp->next;
+        prevNode = current_node;
+        current_node = current_node->next;
       }
     }
     pthread_mutex_unlock(&lock);

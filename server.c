@@ -138,11 +138,7 @@ int main(int argc, char **argv)
     }
     else { printf("server accept the client...\n"); }
 
-    printf("here1\n");
-
     Request_node * anchor_node = create_anchor_node();
-
-    printf("here2\n");
 
     /*for (int i = 0; i < threads; ++i) {
       printf("asdasd");
@@ -161,10 +157,10 @@ int main(int argc, char **argv)
             // printf("accept failed");
             break;
         } else {
-            printf("asdfsadf\n");
             Request req = new_request(connfd);
             bzero(out_buffer, PACKET_RESPONSE_SIZE);
 
+            printf("creating node\n");
             Request_node * new_node = create_node(req);
             insert_node(anchor_node, new_node);
 
