@@ -53,7 +53,7 @@ void *hashThread(void * anchornode) {
     while(1){
         Request req = get_resuest(anchor_node);
         if(req.start == req.end){
-            sleep(5);
+            sleep(1);
         } else{
             //Request req = *(Request*) request; 
             char out_buffer[PACKET_RESPONSE_SIZE];
@@ -134,6 +134,7 @@ int main(int argc, char **argv)
 
     Request_node * anchor_node = create_anchor_node();
 
+
     pthread_t thread_id1 = 1;
     pthread_create(&thread_id1,NULL,hashThread,anchor_node);
     pthread_t thread_id2 = 2;
@@ -142,6 +143,15 @@ int main(int argc, char **argv)
     pthread_create(&thread_id3,NULL,hashThread,anchor_node);
      pthread_t thread_id4 = 4;
     pthread_create(&thread_id4,NULL,hashThread,anchor_node);
+
+    // pthread_t thread_id5 = 5;
+    // pthread_create(&thread_id5,NULL,hashThread,anchor_node);
+    // pthread_t thread_id6 = 6;
+    // pthread_create(&thread_id6,NULL,hashThread,anchor_node);
+    //  pthread_t thread_id7 = 7;
+    // pthread_create(&thread_id7,NULL,hashThread,anchor_node);
+    //  pthread_t thread_id8 = 8;
+    // pthread_create(&thread_id8,NULL,hashThread,anchor_node);
 
 
     while(connfd) {
@@ -154,6 +164,10 @@ int main(int argc, char **argv)
 
             Request_node * new_node = create_node(req);
             insert_node(anchor_node, new_node);
+            printf("request recieved with pri %d \n", req.priority);
+            //printLinkedList2(anchor_node);
+
+
 
             // uint64_t ret = reversehash(req.start, req.end, req.hash);
             // if(ret < (uint64_t)0) {
