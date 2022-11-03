@@ -46,7 +46,7 @@ void delete_node(Request_node *node) {
 Request_node *insert_node(Request_node *head, Request_node *node) {
     // spinlock_lock(lock_pointer);
     pthread_mutex_lock(&mutex_lock);
-    // printf("start insert \n");
+    //printf("start insert \n");
 
     if(head->next == NULL){
         // printf("in here start insert \n");
@@ -57,7 +57,19 @@ Request_node *insert_node(Request_node *head, Request_node *node) {
         node->next = NULL;
         // printf("in he3re start insert \n");
 
+        // Request_node *next = head->next;
+
+        // while (next != NULL)
+        // {
+        //     printf("- %d", next->req.priority );
+        //     next = next->next;
+        // }
+
+        // printf("\n");
+
+
         pthread_mutex_unlock(&mutex_lock);
+        //printf("end insert \n");
         // spinlock_unlock(lock_pointer);
         // printf("in he4re start insert \n");
 
@@ -72,7 +84,9 @@ Request_node *insert_node(Request_node *head, Request_node *node) {
         head->next = node;
         node->next = temp;
         pthread_mutex_unlock(&mutex_lock);
-        // spinlock_unlock(lock_pointer);
+        //printf("end insert \n");    
+       // spinlock_unlock(lock_pointer);
+
         return head;
     }
 
@@ -104,22 +118,40 @@ Request_node *insert_node(Request_node *head, Request_node *node) {
     // printf("\n");
 
     pthread_mutex_unlock(&mutex_lock);
-        printf("end insert \n");
 
     return head;
 }
 
 Request get_resuest(Request_node *head) {
     // spinlock_lock(lock_pointer);
+    //printf("try get unlock %d \n", id);
     pthread_mutex_lock(&mutex_lock);
-    //printf("start get \n");
+    //printf("succedd get unlock %d \n", id );
+
+
+    // Request_node *next = head->next;
+
+    // printf("start get %d \n", id);
+    
+    // while (next != NULL)
+    // {
+    //     printf("-- %d", next->req.priority );
+    //     next = next->next;
+    // }
+
+    // printf("\n");
+
+    //printf("start get %d \n", id);
     if(head->next == NULL){
+        //printf("in get %d \n", id);
         Request req;
         req.start = 1;
         req.end = 1;
         pthread_mutex_unlock(&mutex_lock);
+        //printf("-----------------------------------end get empty %d \n", id);
         return req;
     }
+    //printf("in get %d \n", id);
     Request_node * next_node = head->next;
     Request req = next_node->req;
     head->next = next_node->next;
@@ -127,7 +159,7 @@ Request get_resuest(Request_node *head) {
     //printf("took node with pri %d \n", req.priority);
     // spinlock_unlock(lock_pointer);
     pthread_mutex_unlock(&mutex_lock);
-    //printf("end get \n");
+    //printf("-----------------------------------end get %d \n", id);
     return req;
 }
 
