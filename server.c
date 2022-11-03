@@ -50,21 +50,26 @@ void *hashThread(void *input)
     Request_node *anchor_node = lort.arg1;
     hashArrayElem *oldHashResults = lort.oldHashResults;
     int id = lort.arg2;
-
+    printf("thred %d is created\n", id);
+    sleep(1);
     while (1)
     {
-        Request req = get_resuest(anchor_node);
+        //printf("before rq \n");
+        Request req = get_resuest(anchor_node,id);
+        //printf("after rq \n");
         if (req.start == req.end)
         {
             sleep(1);
         }
         else
         {
+            printf("here we break \n");
             // Request req = *(Request*) request;
             char out_buffer[PACKET_RESPONSE_SIZE];
-            
+            printf("before hash \n");
             uint64_t value = oldHashCheck(req.hash, oldHashResults);
-
+            printf("after hash \n");
+            //int value = -1;
             if (value != -1) {
                 memcpy(out_buffer, &value, sizeof(out_buffer));
                 write(req.con, out_buffer, sizeof(out_buffer));
@@ -85,6 +90,7 @@ void *hashThread(void *input)
             }
 
         }
+        // sleep(1);
     }
 
     // free(out_buffer);
@@ -175,13 +181,15 @@ int main(int argc, char **argv)
 
     for (int i = 0; i < threads; ++i)
     {
-        Lort lort;
-        lort.arg1 = anchor_node;
-        lort.arg2 = i;
-        lort.oldHashResults = oldHashResults;
-        Lort *lort_pointer = &lort;
+        Lort *lort = (Lort *)malloc(sizeof(Lort));
+        //(*lort).arg1=anchor_node;
+        //Lort templort = *lort;
+        (*lort).arg1 = anchor_node;
+        (*lort).arg2 = i;
+        (*lort).oldHashResults = oldHashResults;
+        //Lort *lort_pointer = lort;
         pthread_t thread_id = i;
-        pthread_create(&thread_id, NULL, hashThread, lort_pointer);
+        pthread_create(&thread_id, NULL, hashThread, lort);
     }
 
     while (connfd)
