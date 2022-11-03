@@ -1,13 +1,15 @@
 #include "server.h"
+#include "hashcache.h"
 
 typedef struct Request_node {
     Request req;            
     struct Request_node *next;  
 } Request_node;
 
-typedef struct {
+typedef struct Lort {
   Request_node * arg1;
   int arg2;
+  hashArrayElem *oldHashResults;
 } Lort;
 
 Request_node * create_anchor_node();
