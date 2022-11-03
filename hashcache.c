@@ -33,13 +33,13 @@ void resizeCache(hashArrayElem* oldHashResults) {
             // probing by 1
             num = (num + 1) % sizeOfCache;
             if (newHashResultArray[num].value == 0) {
-                memcpy(newHashResultArray[num].hash, oldHashResults[i].hash, 32);
+                memcpy(newHashResultArray[num].hash, oldHashResults[i].hash, sizeof(oldHashResults[i].hash));
                 newHashResultArray[num].value = value;
                 return;
             }
         }
         } else {
-            memcpy(newHashResultArray[num].hash, oldHashResults[i].hash, 32);
+            memcpy(newHashResultArray[num].hash, oldHashResults[i].hash, sizeof(oldHashResults[i].hash));
             newHashResultArray[num].value = value;
         }
     }
@@ -61,13 +61,13 @@ void oldHashAdd(uint8_t hash[32], uint64_t value, hashArrayElem* oldHashResults)
             // probing by 1
             num = (num + 1) % sizeOfCache;
             if (oldHashResults[num].value == 0) {
-                memcpy(oldHashResults[num].hash, hash, 32);
+                memcpy(oldHashResults[num].hash, hash, sizeof(hash));
                 oldHashResults[num].value = value;
                 break;
             }
         }
     } else {
-        memcpy(oldHashResults[num].hash, hash, 32);
+        memcpy(oldHashResults[num].hash, hash, sizeof(hash));
         oldHashResults[num].value = value;
     }
     numOfElemAdded++;
@@ -88,7 +88,7 @@ uint64_t oldHashCheck(uint8_t hash[32], hashArrayElem* oldHashResults) {
         int64_t value = oldHashResults[num].value;
         printf("%d the check value \n", value);
         if (value != 0) {
-            if (!memcmp(hash,oldHashResults[num].hash, 32)) {
+            if (!memcmp(hash,oldHashResults[num].hash, sizeof(hash))) {
                 pthread_mutex_unlock(&lockCache);
                 return value;
             } else {
