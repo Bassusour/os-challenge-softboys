@@ -3,6 +3,8 @@
 #ifndef SERVER_H
 #define SERVER_H
 
+#define NUM_SLAVE_THREAD 4
+
 typedef struct {
     uint8_t hash[32];
     uint64_t start;

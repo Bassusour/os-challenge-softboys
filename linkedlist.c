@@ -14,12 +14,7 @@ Request_node * create_anchor_node(){
     Request_node *node = (Request_node *)malloc(sizeof(Request_node));
     node->next = NULL;
 
-    pthread_mutexattr_t mutex_attr;
-
-    pthread_mutexattr_init(&mutex_attr);
-    pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
-
-    pthread_mutex_init(&mutex_lock,&mutex_attr);
+    pthread_mutex_init(&mutex_lock,NULL);
 
     //spinlock_init(lock_pointer);
 

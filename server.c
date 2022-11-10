@@ -45,25 +45,36 @@ Request new_request(int connfd)
 }
 
 void *hashThread(void *input)
-{
+{   
+    printf("INSIDE HASH_THREAD\n");
+    Request req = *(Request *)input;
+    printf("TEST %d\n",req.start);
+    uint64_t ret = reversehash(req.start, req.end, req.hash);
+    printf("AFTER REVERSE HASH\n");
+
+    if(ret == 0) {
+        pthread_exit((void *)ret);
+    }
+
+    ret = htobe64(ret);
+    printf("BEFORE EXIT\n");
+    pthread_exit((void *)ret);
+    return NULL;
+}
+
+void *masterThread(void *input) {
+    printf("CREATED MASTER THREAD\n");
     Lort lort = *(Lort *)input;
     Request_node *anchor_node = lort.arg1;
     hashArrayElem *oldHashResults = lort.oldHashResults;
     int id = lort.arg2;
-    printf("thread %d is created\n", id);
-    sleep(1);
-    while (1)
-    {
-        //printf("before rq \n");
+
+    while(1) {
         Request req = get_resuest(anchor_node);
         //printf("after rq \n");
-        if (req.start == req.end)
-        {
+        if (req.start == req.end) {
             sleep(1);
-        }
-        else
-        {
-            // Request req = *(Request*) request;
+        } else {
             char out_buffer[PACKET_RESPONSE_SIZE];
             uint64_t value = oldHashCheck(req.hash, oldHashResults);
             //int value = -1;
@@ -71,28 +82,36 @@ void *hashThread(void *input)
                 memcpy(out_buffer, &value, sizeof(out_buffer));
                 write(req.con, out_buffer, sizeof(out_buffer));
             } else {
-                uint64_t ret = reversehash(req.start, req.end, req.hash);
 
-                if (ret < (uint64_t)0)
-                {
-                    printf("idk man\n");
+                int delta = (req.end - req.start) / NUM_SLAVE_THREAD;
+                for(int i = 0; i < NUM_SLAVE_THREAD; i++) {
+                    Request* request = malloc(sizeof(Request));
+                    memcpy(request,&req,sizeof(Request));
+                    (*request).start = req.start + delta*i;
+                    
+                    if(i != NUM_SLAVE_THREAD-1) {
+                        (*request).end = req.end + (delta*i + delta);
+                    }
+                    pthread_t thread_id = i;
+                    pthread_create(&thread_id, NULL, hashThread, &request);
                 }
-                ret = htobe64(ret);
+                uint64_t ret;
+                for(int i = 0; i < NUM_SLAVE_THREAD; i++) {
+                    uint64_t temp;
+                    pthread_t thread_id = i;
+                    pthread_join(thread_id,(void**)&temp);
+                    if (temp > 0) {
+                        ret = temp;
+                    }
+                }
 
-                // Add hash to cache
                 oldHashAdd(req.hash, ret, oldHashResults);
 
                 memcpy(out_buffer, &ret, sizeof(out_buffer));
                 write(req.con, out_buffer, sizeof(out_buffer));
             }
-
         }
-        // sleep(1);
     }
-
-    // free(out_buffer);
-    pthread_exit(NULL);
-    return NULL;
 }
 
 // Driver function
@@ -176,18 +195,24 @@ int main(int argc, char **argv)
 
     printf("Created cache succeed!\n");
 
-    for (int i = 0; i < threads; ++i)
-    {
-        Lort *lort = (Lort *)malloc(sizeof(Lort));
-        //(*lort).arg1=anchor_node;
-        //Lort templort = *lort;
-        (*lort).arg1 = anchor_node;
-        (*lort).arg2 = i;
-        (*lort).oldHashResults = oldHashResults;
-        //Lort *lort_pointer = lort;
-        pthread_t thread_id = i;
-        pthread_create(&thread_id, NULL, hashThread, lort);
-    }
+    // for (int i = 0; i < threads; ++i)
+    // {
+    //     Lort *lort = (Lort *)malloc(sizeof(Lort));
+    //     //(*lort).arg1=anchor_node;
+    //     //Lort templort = *lort;
+    //     (*lort).arg1 = anchor_node;
+    //     (*lort).arg2 = i;
+    //     (*lort).oldHashResults = oldHashResults;
+    //     //Lort *lort_pointer = lort;
+    //     pthread_t thread_id = i;
+    //     pthread_create(&thread_id, NULL, hashThread, lort);
+    // }
+    Lort *lort = (Lort *)malloc(sizeof(Lort));
+    (*lort).arg1 = anchor_node;
+    (*lort).arg2 = 0;
+    (*lort).oldHashResults = oldHashResults;
+    pthread_t thread_id = 4;
+    pthread_create(&thread_id,NULL, masterThread, lort);
 
     while (connfd)
     {
