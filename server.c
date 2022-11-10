@@ -46,28 +46,24 @@ Request new_request(int connfd)
 
 void *hashThread(void *input)
 {   
-    printf("INSIDE HASH_THREAD\n");
     Request req = *(Request *)input;
-    printf("TEST %d\n",req.start);
     uint64_t ret = reversehash(req.start, req.end, req.hash);
-    printf("AFTER REVERSE HASH\n");
 
     if(ret == 0) {
         pthread_exit((void *)ret);
     }
 
     ret = htobe64(ret);
-    printf("BEFORE EXIT\n");
     pthread_exit((void *)ret);
     return NULL;
 }
 
 void *masterThread(void *input) {
-    printf("CREATED MASTER THREAD\n");
     Lort lort = *(Lort *)input;
     Request_node *anchor_node = lort.arg1;
     hashArrayElem *oldHashResults = lort.oldHashResults;
     int id = lort.arg2;
+    pthread_t thread_list[NUM_SLAVE_THREAD];
 
     while(1) {
         Request req = get_resuest(anchor_node);
@@ -82,27 +78,30 @@ void *masterThread(void *input) {
                 memcpy(out_buffer, &value, sizeof(out_buffer));
                 write(req.con, out_buffer, sizeof(out_buffer));
             } else {
-
+                Request* req_list[NUM_SLAVE_THREAD];
                 int delta = (req.end - req.start) / NUM_SLAVE_THREAD;
+                printf("DELTA IS %ld\n", delta);
                 for(int i = 0; i < NUM_SLAVE_THREAD; i++) {
                     Request* request = malloc(sizeof(Request));
                     memcpy(request,&req,sizeof(Request));
+                    req_list[i] = request;
                     (*request).start = req.start + delta*i;
+                    printf("START IS %ld\n",(*request).start);
                     
                     if(i != NUM_SLAVE_THREAD-1) {
                         (*request).end = req.end + (delta*i + delta);
                     }
-                    pthread_t thread_id = i;
-                    pthread_create(&thread_id, NULL, hashThread, &request);
+                    pthread_create(&thread_list[i], NULL, hashThread, request);
                 }
                 uint64_t ret;
                 for(int i = 0; i < NUM_SLAVE_THREAD; i++) {
                     uint64_t temp;
                     pthread_t thread_id = i;
-                    pthread_join(thread_id,(void**)&temp);
+                    pthread_join(thread_list[i],(void**)&temp);
                     if (temp > 0) {
                         ret = temp;
                     }
+                    free(req_list[i]);
                 }
 
                 oldHashAdd(req.hash, ret, oldHashResults);
