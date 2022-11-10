@@ -163,6 +163,26 @@ Request get_resuest(Request_node *head) {
     return req;
 }
 
+Request get_high_resuest(Request_node *head) {
+   
+    pthread_mutex_lock(&mutex_lock);
+
+    if(head->next == NULL || head->next->req.priority==1){
+        Request req;
+        req.start = 1;
+        req.end = 1;
+        pthread_mutex_unlock(&mutex_lock);
+        return req;
+    }
+    Request_node * next_node = head->next;
+    Request req = next_node->req;
+    head->next = next_node->next;
+    delete_node(next_node);
+
+    pthread_mutex_unlock(&mutex_lock);
+    return req;
+}
+
 void printLinkedList2(Request_node *head){
    // spinlock_lock(lock_pointer);
 

@@ -95,10 +95,62 @@ void *hashThread(void *input)
     return NULL;
 }
 
+void *hashThreadPriority(void *input)
+{
+    Lort lort = *(Lort *)input;
+    Request_node *anchor_node = lort.arg1;
+    hashArrayElem *oldHashResults = lort.oldHashResults;
+    int id = lort.arg2;
+    printf("thread %d is created\n", id);
+    sleep(1);
+    while (1)
+    {
+        //printf("before rq \n");
+        Request req = get_high_resuest(anchor_node);
+        //printf("after rq \n");
+        if (req.start == req.end)
+        {
+            sleep(0.1);
+        }
+        else
+        {
+            printf("----Got one-----\n");
+            // Request req = *(Request*) request;
+            char out_buffer[PACKET_RESPONSE_SIZE];
+            uint64_t value = oldHashCheck(req.hash, oldHashResults);
+            //int value = -1;
+            if (value != -1) {
+                memcpy(out_buffer, &value, sizeof(out_buffer));
+                write(req.con, out_buffer, sizeof(out_buffer));
+            } else {
+                uint64_t ret = reversehash(req.start, req.end, req.hash);
+
+                if (ret < (uint64_t)0)
+                {
+                    printf("idk man\n");
+                }
+                ret = htobe64(ret);
+
+                // Add hash to cache
+                oldHashAdd(req.hash, ret, oldHashResults);
+
+                memcpy(out_buffer, &ret, sizeof(out_buffer));
+                write(req.con, out_buffer, sizeof(out_buffer));
+            }
+
+        }
+        // sleep(1);
+    }
+
+    // free(out_buffer);
+    pthread_exit(NULL);
+    return NULL;
+}
+
 // Driver function
 int main(int argc, char **argv)
 {
-    int sockfd, connfd, len, portno, threads;
+    int sockfd, connfd, len, portno, threads, priorityThreads;
     struct sockaddr_in servaddr, cli;
     char in_buffer[PACKET_REQUEST_SIZE];
     char out_buffer[PACKET_RESPONSE_SIZE];
@@ -124,10 +176,18 @@ int main(int argc, char **argv)
     portno = atoi(argv[1]);
     if (argc <= 2)
     {
-        threads = 8;
+        threads = 4;
     }
     else
-    {
+    {   
+        if (argc <= 3)
+        {
+            priorityThreads = 1;
+        }
+        else
+        {
+            priorityThreads = atoi(argv[3]);
+        }
         threads = atoi(argv[2]);
     }
 
@@ -188,6 +248,21 @@ int main(int argc, char **argv)
         pthread_t thread_id = i;
         pthread_create(&thread_id, NULL, hashThread, lort);
     }
+
+
+    for (int i = 1000; i < threads; ++i)
+    {
+        Lort *lort = (Lort *)malloc(sizeof(Lort));
+            //(*lort).arg1=anchor_node;
+            //Lort templort = *lort;
+        (*lort).arg1 = anchor_node;
+        (*lort).arg2 = i;
+        (*lort).oldHashResults = oldHashResults;
+        //Lort *lort_pointer = lort;
+        pthread_t thread_id = i;
+        pthread_create(&thread_id, NULL, hashThreadPriority, lort);
+    }
+    
 
     while (connfd)
     {
