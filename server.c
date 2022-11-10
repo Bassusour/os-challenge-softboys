@@ -89,8 +89,9 @@ void *masterThread(void *input) {
                     printf("START IS %ld\n",(*request).start);
                     
                     if(i != NUM_SLAVE_THREAD-1) {
-                        (*request).end = req.end + (delta*i + delta);
+                        (*request).end = (*request).start + (delta*i + delta);
                     }
+                    printf("END IS ",(*request).end);
                     pthread_create(&thread_list[i], NULL, hashThread, request);
                 }
                 uint64_t ret;
