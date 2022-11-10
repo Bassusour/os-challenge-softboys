@@ -177,6 +177,7 @@ int main(int argc, char **argv)
     if (argc <= 2)
     {
         threads = 4;
+        priorityThreads = 1;
     }
     else
     {   
@@ -250,7 +251,7 @@ int main(int argc, char **argv)
     }
 
 
-    for (int i = 1000; i < threads; ++i)
+    for (int i = 1000; i < priorityThreads+1000; ++i)
     {
         Lort *lort = (Lort *)malloc(sizeof(Lort));
             //(*lort).arg1=anchor_node;
