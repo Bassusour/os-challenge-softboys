@@ -12,3 +12,11 @@ Priority queue: 100% reliability with a score of 17634707 points. <br />
 Stack: 100% reliability with a score of 22054547 points. 
 
 The difference is 4419840 points, which is very significant. 
+
+## In-request threading
+To come up with this experiment, we started thinking about what was the trade-off between optimizing the handling of different request with threading opposed to optimizing each individual request with threading. After further consideration of the experiment we also thought it could improve the score by giving higher priority requests lower response time, since there is a chance a high priority request comes in just as all threads started cracking other request leading to a relatively long response time with the other threading method.
+
+This experiments includes the also implementation of the priority queue and caching. The experiment's implementation consists of a main thread that manages each individual request by splitting it up into a number of parts, which we will test to see which is more optimal, and have a child thread work each part of the fragmented request and try to find the solution. When all the child threads are done with their part the main thread returns the solution to the client and starts processing the next request. 
+
+#### Setup
+First in order to test the experiment and compare it with the other former threading implementation we set it up so that it was split into 4 parts and then tested it later with other values among themselves. 
