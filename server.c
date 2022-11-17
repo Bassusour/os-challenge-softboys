@@ -97,7 +97,7 @@ void *masterThread(void *input) {
                     pthread_create(&thread_list[i], NULL, hashThread, request);
                 }
                 uint64_t ret;
-                for(int i = 0; i < thread_list; i++) {
+                for(int i = 0; i < threads; i++) {
                     uint64_t temp;
                     pthread_t thread_id = i;
                     pthread_join(thread_list[i],(void**)&temp);
