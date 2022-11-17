@@ -48,7 +48,7 @@ void *hashThread(void *input)
 {
     Lort lort = *(Lort *)input;
     Request_node *anchor_node = lort.arg1;
-    hashArrayElem *oldHashResults = lort.oldHashResults;
+    //hashArrayElem *oldHashResults = lort.oldHashResults;
     int id = lort.arg2;
     printf("thread %d is created\n", id);
     sleep(1);
@@ -65,6 +65,7 @@ void *hashThread(void *input)
         {
             // Request req = *(Request*) request;
             char out_buffer[PACKET_RESPONSE_SIZE];
+            /*
             uint64_t value = oldHashCheck(req.hash, oldHashResults);
             //int value = -1;
             if (value != -1) {
@@ -85,6 +86,17 @@ void *hashThread(void *input)
                 memcpy(out_buffer, &ret, sizeof(out_buffer));
                 write(req.con, out_buffer, sizeof(out_buffer));
             }
+            */
+                uint64_t ret = reversehash(req.start, req.end, req.hash);
+
+                if (ret < (uint64_t)0)
+                {
+                    printf("idk man\n");
+                }
+                ret = htobe64(ret);
+
+                memcpy(out_buffer, &ret, sizeof(out_buffer));
+                write(req.con, out_buffer, sizeof(out_buffer));
 
         }
         // sleep(1);
@@ -172,7 +184,7 @@ int main(int argc, char **argv)
     Request_node *anchor_node = create_anchor_node();
 
     // Create cache
-    hashArrayElem *oldHashResults = initHashCache();
+    //hashArrayElem *oldHashResults = initHashCache();
 
     printf("Created cache succeed!\n");
 
@@ -183,7 +195,7 @@ int main(int argc, char **argv)
         //Lort templort = *lort;
         (*lort).arg1 = anchor_node;
         (*lort).arg2 = i;
-        (*lort).oldHashResults = oldHashResults;
+//        (*lort).oldHashResults = oldHashResults;
         //Lort *lort_pointer = lort;
         pthread_t thread_id = i;
         pthread_create(&thread_id, NULL, hashThread, lort);
@@ -201,6 +213,7 @@ int main(int argc, char **argv)
             Request req = new_request(connfd);
             printf("New request! \n");
             bzero(out_buffer, PACKET_RESPONSE_SIZE);
+            /*
             uint64_t value = oldHashCheck(req.hash, oldHashResults);
             if (value != -1) {
                 printf("SAME!");
@@ -210,6 +223,9 @@ int main(int argc, char **argv)
                 Request_node *new_node = create_node(req);
                 insert_node(anchor_node, new_node);
             }
+            */
+            Request_node *new_node = create_node(req);
+            insert_node(anchor_node, new_node);
 
             // uint64_t ret = reversehash(req.start, req.end, req.hash);
             // if(ret < (uint64_t)0) {
