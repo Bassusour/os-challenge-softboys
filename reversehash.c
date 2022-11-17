@@ -23,5 +23,5 @@ uint64_t reversehash(uint64_t start, uint64_t end, uint8_t hash[32]){
         bzero(ibuf,sizeof(ibuf));
         bzero(obuf,sizeof(obuf));
     }
-    return -1;
+    return 0;
 }

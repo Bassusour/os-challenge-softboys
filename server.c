@@ -68,22 +68,28 @@ void *hashThread(void *input)
             uint64_t value = oldHashCheck(req.hash, oldHashResults);
             //int value = -1;
             if (value != -1) {
-                memcpy(out_buffer, &value, sizeof(out_buffer));
-                write(req.con, out_buffer, sizeof(out_buffer));
+                if(!(value > req.end || value < req.start)){
+                    memcpy(out_buffer, &value, sizeof(out_buffer));
+                    write(req.con, out_buffer, sizeof(out_buffer));
+                }
+
             } else {
                 uint64_t ret = reversehash(req.start, req.end, req.hash);
-
-                if (ret < (uint64_t)0)
+                if(ret != 0)
                 {
-                    printf("idk man\n");
+                    ret = htobe64(ret);
+
+                    // Add hash to cache
+                    oldHashAdd(req.hash, ret, oldHashResults);
+
+                    memcpy(out_buffer, &ret, sizeof(out_buffer));
+                    write(req.con, out_buffer, sizeof(out_buffer));
+                }else{
+                    //printf("no res \n");
                 }
-                ret = htobe64(ret);
+                
 
-                // Add hash to cache
-                oldHashAdd(req.hash, ret, oldHashResults);
 
-                memcpy(out_buffer, &ret, sizeof(out_buffer));
-                write(req.con, out_buffer, sizeof(out_buffer));
             }
 
         }
@@ -177,13 +183,13 @@ int main(int argc, char **argv)
     if (argc <= 2)
     {
         threads = 4;
-        priorityThreads = 1;
+        priorityThreads = 0;
     }
     else
     {   
         if (argc <= 3)
         {
-            priorityThreads = 1;
+            priorityThreads = 0;
         }
         else
         {
@@ -283,8 +289,16 @@ int main(int argc, char **argv)
                 memcpy(out_buffer, &value, sizeof(out_buffer));
                 write(req.con, out_buffer, sizeof(out_buffer));
             } else {
-                Request_node *new_node = create_node(req);
-                insert_node(anchor_node, new_node);
+                uint64_t delta = (req.end - req.start)/4;
+                for(int i = 0; i < 4 ; i++){
+                    Request req2;
+                    memcpy(&req2,&req,sizeof(req));
+                    req2.start = req.start + delta*i;
+                    req2.end = req.end - delta * (3-i);
+                    Request_node *new_node = create_node(req2);
+                    insert_node(anchor_node, new_node);
+                }
+
             }
 
             // uint64_t ret = reversehash(req.start, req.end, req.hash);
