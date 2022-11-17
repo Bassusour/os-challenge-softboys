@@ -16,6 +16,8 @@
 
 #define SA struct sockaddr
 
+int threads;
+
 Request new_request(int connfd)
 {
     unsigned char in_buffer[PACKET_REQUEST_SIZE];
@@ -63,7 +65,7 @@ void *masterThread(void *input) {
     Request_node *anchor_node = lort.arg1;
     hashArrayElem *oldHashResults = lort.oldHashResults;
     int id = lort.arg2;
-    pthread_t thread_list[NUM_SLAVE_THREAD];
+    pthread_t thread_list[threads];
 
     while(1) {
         Request req = get_resuest(anchor_node);
@@ -78,24 +80,24 @@ void *masterThread(void *input) {
                 memcpy(out_buffer, &value, sizeof(out_buffer));
                 write(req.con, out_buffer, sizeof(out_buffer));
             } else {
-                Request* req_list[NUM_SLAVE_THREAD];
-                int delta = (req.end - req.start) / NUM_SLAVE_THREAD;
+                Request* req_list[threads];
+                int delta = (req.end - req.start) / threads;
                 printf("DELTA IS %ld\n", delta);
-                for(int i = 0; i < NUM_SLAVE_THREAD; i++) {
+                for(int i = 0; i < threads; i++) {
                     Request* request = malloc(sizeof(Request));
                     memcpy(request,&req,sizeof(Request));
                     req_list[i] = request;
                     (*request).start = req.start + delta*i;
                     printf("START IS %ld\n",(*request).start);
                     
-                    if(i != NUM_SLAVE_THREAD-1) {
+                    if(i != threads-1) {
                         (*request).end = (*request).start + delta;
                     }
                     printf("END IS ",(*request).end);
                     pthread_create(&thread_list[i], NULL, hashThread, request);
                 }
                 uint64_t ret;
-                for(int i = 0; i < NUM_SLAVE_THREAD; i++) {
+                for(int i = 0; i < thread_list; i++) {
                     uint64_t temp;
                     pthread_t thread_id = i;
                     pthread_join(thread_list[i],(void**)&temp);
@@ -117,7 +119,7 @@ void *masterThread(void *input) {
 // Driver function
 int main(int argc, char **argv)
 {
-    int sockfd, connfd, len, portno, threads;
+    int sockfd, connfd, len, portno;
     struct sockaddr_in servaddr, cli;
     char in_buffer[PACKET_REQUEST_SIZE];
     char out_buffer[PACKET_RESPONSE_SIZE];
@@ -211,7 +213,7 @@ int main(int argc, char **argv)
     (*lort).arg1 = anchor_node;
     (*lort).arg2 = 0;
     (*lort).oldHashResults = oldHashResults;
-    pthread_t thread_id = 4;
+    pthread_t thread_id = threads;
     pthread_create(&thread_id,NULL, masterThread, lort);
 
     while (connfd)
