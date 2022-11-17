@@ -68,10 +68,9 @@ void *hashThread(void *input)
             uint64_t value = oldHashCheck(req.hash, oldHashResults);
             //int value = -1;
             if (value != -1) {
-                if( value <= req.end && value >= req.start){
-                    memcpy(out_buffer, &value, sizeof(out_buffer));
-                    write(req.con, out_buffer, sizeof(out_buffer));
-                }
+                memcpy(out_buffer, &value, sizeof(out_buffer));
+                write(req.con, out_buffer, sizeof(out_buffer));
+
 
             } else {
                 uint64_t ret = reversehash(req.start, req.end, req.hash);
