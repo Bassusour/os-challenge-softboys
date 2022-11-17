@@ -60,6 +60,7 @@ void *hashThread(void *input)
         if (req.start == req.end)
         {
             sleep(1);
+            printf("nothing on queue\n");
         }
         else
         {
@@ -294,7 +295,10 @@ int main(int argc, char **argv)
                     Request req2;
                     memcpy(&req2,&req,sizeof(req));
                     req2.start = req.start + delta*i;
-                    req2.end = req.end - delta * (3-i);
+                    if(i != 3){
+
+                    }
+
                     Request_node *new_node = create_node(req2);
                     insert_node(anchor_node, new_node);
                 }
