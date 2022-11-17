@@ -60,7 +60,6 @@ void *hashThread(void *input)
         if (req.start == req.end)
         {
             sleep(1);
-            printf("nothing on queue\n");
         }
         else
         {
@@ -69,7 +68,7 @@ void *hashThread(void *input)
             uint64_t value = oldHashCheck(req.hash, oldHashResults);
             //int value = -1;
             if (value != -1) {
-                if(!(value > req.end || value < req.start)){
+                if( value <= req.end && value >= req.start){
                     memcpy(out_buffer, &value, sizeof(out_buffer));
                     write(req.con, out_buffer, sizeof(out_buffer));
                 }
@@ -294,11 +293,8 @@ int main(int argc, char **argv)
                 for(int i = 0; i < 4 ; i++){
                     Request req2;
                     memcpy(&req2,&req,sizeof(req));
-                    req2.start = req.start + delta*i;
-                    if(i != 3){
-
-                    }
-
+                    req2.start = (req.start + delta*i )-20;
+                    req2.end = (req.end - delta * (3-i))+20;
                     Request_node *new_node = create_node(req2);
                     insert_node(anchor_node, new_node);
                 }
