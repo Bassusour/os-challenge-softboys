@@ -1,9 +1,25 @@
 # os-challenge-softboys
 
-In this project, we were tasked with implementing a linux server, which should handle various requests.
-To do this, we implemented various features, to optimize the server in regards to speed and priority of requests.
+In this project, we were tasked with implementing a linux server, which should handle reverse hashing requests.
 
-## Priority queue
+In our base implementation we have a server wich listen to socket. When a request arives it is stored in a linked that acts like a stack. The server pops the reuest one by one and uses our reverse hash function to crack the hash. When the hash is found it is sent back to the client.
+The reverse hash itself is a loop that goes through from start to end of a reeust and tries all numbers inbtween to see if it is the hash we are looking for.
+
+We have conducted a set of experiments to improve our server, the result of these is listed below. We will end up with a short description of the chosen solution.
+
+Table of resposibles for experriments:
+| Experiment | Resposible |
+| :---: | :---:|
+| Priority stack | Bastian |
+| Threading experiment | Alexander |
+| Mutex vs Spinlock | Victor |
+| Hash cache | Theodor |
+| Queue vs stack | Theodor |
+| In request threading | Victor |
+| Pseudo scheduling | Alexander |
+| Priority thread | Bastian |
+
+## Priority stack
 We implemented a priority queue system, to handle the given requests. This was done with a linked list, where the request with the highest priority is put closest to the head, and the least priority to the end. This makes the list sorted. A request is always taken from closest to head. 
 
 To see how this feature affected the score, we tested it with one thread, to see how the priority queue affected the score. Without the priority queue, it just takes the newest request. That way, it works just like a stack. 
@@ -66,6 +82,43 @@ And the results were:
 There is a negligible difference in the score, which was expected since we used this experiment to improve reliability. But the results of the tests for reliability can't really be shown by the score difference, since sometimes with spilocks the server program would crash. However after implementing mutexes we didn't run into race conditions or segmentation faults due to access of the request list throughout the rest of the project.
 
 With this we opted for using mutexes in our final solution.
+## Experiment: Cache
+Since there is a chance for the client to send the exact same hash multiple
+times to be reverse hashed, we thought it was obvious to try to implement some sort of cache. A cache could enable us to check if an incoming hash request from the client has already been computed and therefore improve the overall performance of the server.
+
+### Implementation
+The way we implemented the cache was with a hash table, since we wanted the search for if a hash has already been reversed to be as fast as possible. The run time of the search is constant time but this can be longer depending on the number of collisions. Collisions are when the hash function evalutates the hash to the same index.
+![Hash table](images/hashtable.png)
+We therefore had to implement **probing**. We implemented linear probing which is where we increase index by 1 until we find a free spot. To decrease the number of collisions we designed the hash table to also double the size of elements in the hash table.   
+![Probing](images/hashprobing.png)
+
+### Results
+Running a the milestone client program with and without the cache implementation we get the following results:
+
+    Without cache: 100%, 23439259 score
+    With cache: 100%, 18655014 score 
+    Difference: 4784245
+
+The repetition probability for the milestone is 20% and if we look at the difference between the two scores we see decrease in approximatly 20%. So in conclusion the implementation of the cache significantly increase the speed of our server.
+
+In this project, we were tasked with implementing a linux server, which should handle various requests.
+To do this, we implemented various features, to optimize the server in regards to speed and priority of requests.
+
+## Queue or Stack Experiment
+The way we originally implemented the linked list for storing the incoming request was with the style of a stack. So when we insert a new request into the linked list, we check the request starting from the head and comparing the priority. Whenever the request we are trying the insert is greater than the one we are comparing, then we place it infront of that.
+
+We then thought of testing a queue style to see if it made a difference in the performance. So whenever we try to insert a new request, if there a is a sequence of request of the same priority level in the linked list, it will place it at the end of this sequence. This will act more like a queue, with the FIFO("First in first out") principle.
+
+We did a test with both variations and got the following results:
+
+    Stack: 43823126
+    Queue: 43996520
+
+![Stack linked list](images/linkStack.png)
+![Queue linked list](images/linkQueue.png)
+
+This is approximatly the same score and there could be slowdowns for other reasons. We think this result makes sense since ...
+
 
 ## In-request threading
 To come up with this experiment, we started thinking about what was the trade-off between optimizing the handling of different request with threading opposed to optimizing each individual request with threading. After further consideration of the experiment we also thought it could improve the score by giving higher priority requests lower response time, since there is a chance a high priority request comes in just as all threads started cracking other request leading to a relatively long response time with the other threading method.
@@ -136,40 +189,9 @@ From the result it can be seen that this new version of the server is indeed not
 
 Beacuse of this implemenation not giving a better result than the original we have chosen not to keep this in the final implenation.
 
+## Priority Threads (SKRIV BASTIAN) 
 
-## Experiment: Cache
-Since there is a chance for the client to send the exact same hash multiple
-times to be reverse hashed, we thought it was obvious to try to implement some sort of cache. A cache could enable us to check if an incoming hash request from the client has already been computed and therefore improve the overall performance of the server.
-
-### Implementation
-The way we implemented the cache was with a hash table, since we wanted the search for if a hash has already been reversed to be as fast as possible. The run time of the search is constant time but this can be longer depending on the number of collisions. Collisions are when the hash function evalutates the hash to the same index.
-![Hash table](images/hashtable.png)
-We therefore had to implement **probing**. We implemented linear probing which is where we increase index by 1 until we find a free spot. To decrease the number of collisions we designed the hash table to also double the size of elements in the hash table.   
-![Probing](images/hashprobing.png)
-
-### Results
-Running a the milestone client program with and without the cache implementation we get the following results:
-
-    Without cache: 100%, 23439259 score
-    With cache: 100%, 18655014 score 
-    Difference: 4784245
-
-The repetition probability for the milestone is 20% and if we look at the difference between the two scores we see decrease in approximatly 20%. So in conclusion the implementation of the cache significantly increase the speed of our server.
-
-In this project, we were tasked with implementing a linux server, which should handle various requests.
-To do this, we implemented various features, to optimize the server in regards to speed and priority of requests.
-
-## Queue or Stack Experiment
-The way we originally implemented the linked list for storing the incoming request was with the style of a stack. So when we insert a new request into the linked list, we check the request starting from the head and comparing the priority. Whenever the request we are trying the insert is greater than the one we are comparing, then we place it infront of that.
-
-We then thought of testing a queue style to see if it made a difference in the performance. So whenever we try to insert a new request, if there a is a sequence of request of the same priority level in the linked list, it will place it at the end of this sequence. This will act more like a queue, with the FIFO("First in first out") principle.
-
-We did a test with both variations and got the following results:
-
-    Stack: 43823126
-    Queue: 43996520
-
-![Stack linked list](images/linkStack.png)
-![Queue linked list](images/linkQueue.png)
-
-This is approximatly the same score and there could be slowdowns for other reasons. We think this result makes sense since ...
+## Final Solution
+In our final server we have a priority sorted stack to hold incoming requests.
+The server has 5 threads that are dedicated to poping items from the stack and handeling the requests.
+Each found solution is stored in a hash cache that both the main server thread, and the hash treads can acces to check if a hash have alreadyu been calculated.
