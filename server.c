@@ -199,11 +199,9 @@ int main(int argc, char **argv)
         else
         {
             Request req = new_request(connfd);
-            printf("New request! \n");
             bzero(out_buffer, PACKET_RESPONSE_SIZE);
             uint64_t value = oldHashCheck(req.hash, oldHashResults);
             if (value != -1) {
-                printf("SAME!");
                 memcpy(out_buffer, &value, sizeof(out_buffer));
                 write(req.con, out_buffer, sizeof(out_buffer));
             } else {

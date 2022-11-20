@@ -46,36 +46,6 @@ void delete_node(Request_node *node) {
 Request_node *insert_node(Request_node *head, Request_node *node) {
     // spinlock_lock(lock_pointer);
     pthread_mutex_lock(&mutex_lock);
-    //printf("start insert \n");
-
-    if(head->next == NULL){
-        // printf("in here start insert \n");
-
-        head->next = node;
-        // printf("in h2ere start insert \n");
-
-        node->next = NULL;
-        // printf("in he3re start insert \n");
-
-        // Request_node *next = head->next;
-
-        // while (next != NULL)
-        // {
-        //     printf("- %d", next->req.priority );
-        //     next = next->next;
-        // }
-
-        // printf("\n");
-
-
-        pthread_mutex_unlock(&mutex_lock);
-        //printf("end insert \n");
-        // spinlock_unlock(lock_pointer);
-        // printf("in he4re start insert \n");
-
-        return head;
-    }
-
 
     Request_node *temp = head->next;
     
@@ -91,7 +61,7 @@ Request_node *insert_node(Request_node *head, Request_node *node) {
     }
 
     Request_node *prev = head;
-    while (temp->req.priority > node->req.priority && temp->next != NULL)
+    while (temp->req.priority >= node->req.priority && temp->next != NULL)
     {
         prev = prev->next;
         temp = temp->next;
