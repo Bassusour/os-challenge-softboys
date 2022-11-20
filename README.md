@@ -32,6 +32,34 @@ On the above figure it can be seen that even incrasing the amount of threads to 
 
 Based on this experiment we can say that it is better to have more than 1 thread and based on the data we have chosen to go with 4 threads since more thrads does not yield a lower result.
 
+## Spin locks vs Mutex
+After the addition of threading into our server there was yet another case we had to take into consideration. Since all threads retrieve requests from the same list, the could be a case where multiple locks get access to the same request at the same time, leading to protential redundant and wasted computational power and likely memory errors.
+
+For the first implentation we used spin locks in order to ensue only one thread had access to the request list at a time and then released the lokc whenever it was done retrieving. While in most tests is yielded 100% reliability there were some executions that were interrupted due to either race conditions where the program got stuck, or segmentation faults due to memory errors. This issue only showed itself whenever we set the request delay to an amout of time shorter than a thread could crack the hash.
+
+We then decided to change the lock type to use mutexes instead since they are more reliable and don't have as much CPU overhead compared to spin locks, who are just stuck checking for a condition. 
+
+#### Testing
+In order to test whether there is a difference in time these were the parameters used for the client in each case:
+
+- Total: 100
+- Start: 0
+- Difficulty: 30000000
+- Repetition probability: 0%
+- Delay: 600000
+- Priority $\lambda$: 0
+
+And the results were:
+
+| | Score |
+| :---: | :---:|
+| Spin lock | 15561566 |
+| Mutex | 15452852 |
+
+There is a negligible difference in the score, which was expected since we used this experiment to improve reliability. But the results of the tests for reliability can't really be shown by the score difference, since sometimes with spilocks the server program would crash. However after implementing mutexes we didn't run into race conditions or segmentation faults due to access of the request list throughout the rest of the project.
+
+With this we opted for using mutexes in our final solution.
+
 ## In-request threading
 To come up with this experiment, we started thinking about what was the trade-off between optimizing the handling of different request with threading opposed to optimizing each individual request with threading. After further consideration of the experiment we also thought it could improve the score by giving higher priority requests lower response time, since there is a chance a high priority request comes in just as all threads started cracking other request leading to a relatively long response time with the other threading method.
 
