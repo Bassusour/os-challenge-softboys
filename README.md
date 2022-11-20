@@ -135,3 +135,41 @@ Below is the avargea score after 5 runs with the above parameters.
 From the result it can be seen that this new version of the server is indeed not faster that the old implementation. Threads would have to start and stop more frequently in this new version which would cost time. As this was implented after the hash cache, we would have believed that there was few drawbacks of dividing the request into smaller sub requests. But testing it seems like the issue is partially due to each request on avareage takes longer to calculate, beacuase if the result is found in one of the subrequests, other thread might be working on other subrequest originating from the same request. This issue is similar but not as bad as in the In-request threading experiment.
 
 Beacuse of this implemenation not giving a better result than the original we have chosen not to keep this in the final implenation.
+
+
+## Experiment: Cache
+Since there is a chance for the client to send the exact same hash multiple
+times to be reverse hashed, we thought it was obvious to try to implement some sort of cache. A cache could enable us to check if an incoming hash request from the client has already been computed and therefore improve the overall performance of the server.
+
+### Implementation
+The way we implemented the cache was with a hash table, since we wanted the search for if a hash has already been reversed to be as fast as possible. The run time of the search is constant time but this can be longer depending on the number of collisions. Collisions are when the hash function evalutates the hash to the same index.
+![Hash table](images/hashtable.png)
+We therefore had to implement **probing**. We implemented linear probing which is where we increase index by 1 until we find a free spot. To decrease the number of collisions we designed the hash table to also double the size of elements in the hash table.   
+![Probing](images/hashprobing.png)
+
+### Results
+Running a the milestone client program with and without the cache implementation we get the following results:
+
+    Without cache: 100%, 23439259 score
+    With cache: 100%, 18655014 score 
+    Difference: 4784245
+
+The repetition probability for the milestone is 20% and if we look at the difference between the two scores we see decrease in approximatly 20%. So in conclusion the implementation of the cache significantly increase the speed of our server.
+
+In this project, we were tasked with implementing a linux server, which should handle various requests.
+To do this, we implemented various features, to optimize the server in regards to speed and priority of requests.
+
+## Queue or Stack Experiment
+The way we originally implemented the linked list for storing the incoming request was with the style of a stack. So when we insert a new request into the linked list, we check the request starting from the head and comparing the priority. Whenever the request we are trying the insert is greater than the one we are comparing, then we place it infront of that.
+
+We then thought of testing a queue style to see if it made a difference in the performance. So whenever we try to insert a new request, if there a is a sequence of request of the same priority level in the linked list, it will place it at the end of this sequence. This will act more like a queue, with the FIFO("First in first out") principle.
+
+We did a test with both variations and got the following results:
+
+    Stack: 43823126
+    Queue: 43996520
+
+![Stack linked list](images/linkStack.png)
+![Queue linked list](images/linkQueue.png)
+
+This is approximatly the same score and there could be slowdowns for other reasons. We think this result makes sense since ...
