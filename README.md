@@ -20,3 +20,39 @@ This experiments includes the also implementation of the priority queue and cach
 
 #### Setup
 First in order to test the experiment and compare it with the other former threading implementation we set it up so that it was split into 4 parts and then tested it later with other values among themselves. 
+
+First I ran the former implementation with 8 threads with the following parameters for the client:
+
+- Total: 100
+- Start: 0
+- Difficulty: 30000000
+- Repetition probability: 20%
+- Delay: 600000
+- Priority $\lambda$: 1.5
+
+Afterwards I tested different parameters for amount of child threads but the same client configuration. Since we figured this method has an influence on the priority handling we also decided to run the experiment with Priority $\lambda$ = 1.3 and then = 1.0.
+
+
+#### Results 
+The resulting score of running the former implementation with 8 threads was 12582285 so I'll be using this as the parameter in order to conclude the outcome of the experiment.
+
+The results of running with different amount of threads are shown in the following table:
+
+| # Threads | Score |
+| :---: | :---:|
+| 2 | 151701544 |
+| 4 | 63791141 |
+| 6 | 62774341 |
+| 8 | 63091071 |
+
+The results of changing the priority were:
+| $\lambda$ | Score |
+| :---: | :---:|
+| 1.5 | 63091071 |
+| 1.3 | 64941635 |
+| 1.0 | 57437576 |
+
+#### Conclusion
+In conclusion this experiment showed a great downgrade in comparison to the other threading implementation, this is likely due to the fact that for each request the time it takes is in theory constant, since all child threads have to finish before returning the result to the client even if they don't have the answer in the scope they were given. 
+
+The implementation did show a very small improvement with a higher variety of priorities, but far from enough to justify implementing it in the final, solution in any way.
