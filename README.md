@@ -21,6 +21,13 @@ Once the linked list containing the request was implemented, we saw that the lin
 In this experiment we will implement a hash tread that takes a request from the prioty sorted linked list. It will then crack the hash and get a new one. The hash threads will be created in the main, and if a second argument after the port number is given to the sserve this will represent the number of threads created, this is to allow to test with a variyng amount of threads to find a optimal amount.
 
 The experiment will test different amount of threads(from 1 to 8) to see what the optimal amount of threads is. The test will be done on the vagrant setup and run 4 times for each amount of threads. The run will be done on the milestone setup. The test has been condicted on the main branch on this hash `4bd8523126dee2fc39baf3dbaf587ee7dc376e78`.
+The parementer for the client in the experiment is as follows:
+- Total: 100
+- Start: 0
+- Difficulty: 30000000
+- Repetition probability: 20%
+- Delay: 600000
+- Priority $\lambda$: 1.5
 
 ![Threading scores](Threadscore.png)
 
@@ -76,3 +83,27 @@ In conclusion this experiment showed a great downgrade in comparison to the othe
 
 The implementation did show a very small improvement with a higher variety of priorities, but far from enough to justify implementing it in the final, solution in any way.
 
+## Pseudo scheduling
+On the continuous execution web page provided for the course we could see that the differce in run time between our implemenation and the best implementation amount to about 15 seconds, the fastest takes about a 100 seconds, so our implementation is 15% slower while having that is tre times as high. We think that this is due to the handeling of the priority.
+
+An attempt at getting a higher score we had the idea that a thread with high priority should be handeled quickly. The issue we belive that we have at the moment is that when a new thread arives with a high priotity, we risk that all threads are occupied and the new request with high priority therefore have to wait for all threads to terminate before being handeled.
+
+A scheduler works so that it chosses wich tasks to be executed at a certain time. Some schedulers also takes into account priority. In this experiment we will divide each incoming request into smaller segements and utilise the existing priority structure to store them. This means that when a request arives there is made a set of request in this experiment 4. Each containing a fouth of the search spectrum for the hash request. In this way a new incoming high priotiy thread will have to wait for a shorter duration of time before being handeled.
+
+In this experiment we will test the pseudo scheduler against the main with 4 threads.
+The parementer for the client in the experiment is as follows:
+- Total: 100
+- Start: 0
+- Difficulty: 30000000
+- Repetition probability: 20%
+- Delay: 600000
+- Priority $\lambda$: 1.5
+
+Below is the avargea score after 5 runs with the above parameters.
+| | Normal | Pseudo scheduling |
+| :---: | :---:| :---:|
+| Score | 3509427 | 4280612 |
+
+From the result it can be seen that this new version of the server is indeed not faster that the old implementation. Threads would have to start and stop more frequently in this new version which would cost time. As this was implented after the hash cache, we would have believed that there was few drawbacks of dividing the request into smaller sub requests. But testing it seems like the issue is partially due to each request on avareage takes longer to calculate, beacuase if the result is found in one of the subrequests, other thread might be working on other subrequest originating from the same request. This issue is similar but not as bad as in the In-request threading experiment.
+
+Beacuse of this implemenation not giving a better result than the original we have chosen not to keep this in the final implenation.
