@@ -6,10 +6,12 @@ To do this, we implemented various features, to optimize the server in regards t
 ## Priority queue
 We implemented a priority queue system, to handle the given requests. This was done with a linked list, where the request with the highest priority is put closest to the head, and the least priority to the end. This makes the list sorted. A request is always taken from closest to head. 
 
-To see how this feature affected the score, we tested it with 4 threads and with cache, to see how the priority queue affected the score. Without the priority queue, it just takes the newest request. That way, it works just like a stack. 
+To see how this feature affected the score, we tested it with one thread, to see how the priority queue affected the score. Without the priority queue, it just takes the newest request. That way, it works just like a stack. 
 
-Priority queue: 100% reliability with a score of 17634707 points. <br />
-Stack: 100% reliability with a score of 22054547 points. 
+Priority queue: 100% reliability with a score of 135667709 points. <br />
+Stack: 100% reliability with a score of 163875879 points. 
+
+The difference is 28208170 points, which is a speedup of 17.21%. Keep in mind that this run by the vagrant from a local machine, and the score may differ if run on another machine. 
 
 The difference is 4419840 points, which is very significant. 
 
@@ -29,3 +31,4 @@ The above figure shows the avarage score at different thread amounts. It is here
 On the above figure it can be seen that even incrasing the amount of threads to 1000 dosent have a score penealty due to have only 4 CPU's on the server. But if threads does not get a request they will go to sleep for 1 second, this might be the reason for wich there in not a penalty on the score, if threads would hve continualsy tried to get a request even though there was none, we would maybe have seen a much higher score for a 1000 threads.
 
 Based on this experiment we can say that it is better to have more than 1 thread and based on the data we have chosen to go with 4 threads since more thrads does not yield a lower result.
+
