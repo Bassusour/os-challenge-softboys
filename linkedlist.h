@@ -6,6 +6,7 @@ typedef struct Request_node {
     struct Request_node *next;  
 } Request_node;
 
+// Load of reaquest Thread struct for passing
 typedef struct Lort {
   Request_node * arg1;
   int arg2;
