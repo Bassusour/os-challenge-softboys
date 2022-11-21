@@ -102,10 +102,6 @@ Running a the milestone client program with and without the cache implementation
 
 The repetition probability for the milestone is 20% and if we look at the difference between the two scores we see decrease in approximatly 20%. So in conclusion the implementation of the cache significantly increase the speed of our server.
 
-In this project, we were tasked with implementing a linux server, which should handle various requests.
-To do this, we implemented various features, to optimize the server in regards to speed and priority of requests.
-
-
 ## Queue or Stack Experiment
 The way we originally implemented the linked list for storing the incoming request was with the style of a stack. So when we insert a new request into the linked list, we check the request starting from the head and comparing the priority. Whenever the request we are trying the insert is greater than the one we are comparing, then we place it infront of that.
 
