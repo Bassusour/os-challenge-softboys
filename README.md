@@ -143,8 +143,11 @@ times to be reverse hashed, we thought it was obvious to try to implement some s
 
 ### Implementation
 The way we implemented the cache was with a hash table, since we wanted the search for if a hash has already been reversed to be as fast as possible. The run time of the search is constant time but this can be longer depending on the number of collisions. Collisions are when the hash function evalutates the hash to the same index.
+
 ![Hash table](images/hashtable.png)
+
 We therefore had to implement **probing**. We implemented linear probing which is where we increase index by 1 until we find a free spot. To decrease the number of collisions we designed the hash table to also double the size of elements in the hash table.   
+
 ![Probing](images/hashprobing.png)
 
 ### Results
@@ -162,14 +165,17 @@ To do this, we implemented various features, to optimize the server in regards t
 ## Queue or Stack Experiment
 The way we originally implemented the linked list for storing the incoming request was with the style of a stack. So when we insert a new request into the linked list, we check the request starting from the head and comparing the priority. Whenever the request we are trying the insert is greater than the one we are comparing, then we place it infront of that.
 
+![Stack linked list](images/linkStack.png)
+
 We then thought of testing a queue style to see if it made a difference in the performance. So whenever we try to insert a new request, if there a is a sequence of request of the same priority level in the linked list, it will place it at the end of this sequence. This will act more like a queue, with the FIFO("First in first out") principle.
 
-We did a test with both variations and got the following results:
+![Queue linked list](images/linkQueue.png)
+
+### Test
+We did a test with both variations and got the following results from running the milestone with 20 request:
 
     Stack: 43823126
     Queue: 43996520
 
-![Stack linked list](images/linkStack.png)
-![Queue linked list](images/linkQueue.png)
-
-This is approximatly the same score and there could be slowdowns for other reasons. We think this result makes sense since ...
+### Conclude 
+This is approximatly the same score and there could be slowdowns for other reasons. We think this result makes sense since the average of score is based on the latency and the priority of the requests and the order of handling request as stack or queue will give the same average latency. Therefore it makes no difference as long as we handle request with higher priority before low priorty.
