@@ -9,7 +9,6 @@
 #include <sys/types.h>
 #include <messages.h>
 #include <server.h>
-//#include "hashcache.h"
 #include <reversehash.h>
 #include <pthread.h>
 #include "linkedlist.h"
@@ -24,10 +23,12 @@ Request new_request(int connfd)
     uint64_t end = 0;
     uint8_t prio = 0;
     bzero(in_buffer, PACKET_REQUEST_SIZE);
+    // Read incoming packet
     read(connfd, in_buffer, sizeof(in_buffer));
     memcpy(req.hash, &in_buffer[PACKET_REQUEST_HASH_OFFSET], 32);
     prio = in_buffer[PACKET_REQUEST_PRIO_OFFSET];
 
+    // Decode start and end of hash interval
     for (uint64_t i = 0; i < 8; i++)
     {
         start = start | ((uint64_t)in_buffer[39 - i] << i * 8);
@@ -45,38 +46,33 @@ Request new_request(int connfd)
 }
 
 void *hashThread(void *input)
-{
+{   
+    // Retrieve thread input parameters
     Lort lort = *(Lort *)input;
     Request_node *anchor_node = lort.arg1;
     hashArrayElem *oldHashResults = lort.oldHashResults;
     int id = lort.arg2;
-    printf("thread %d is created\n", id);
     sleep(1);
     while (1)
     {
-        //printf("before rq \n");
         Request req = get_resuest(anchor_node);
-        //printf("after rq \n");
         if (req.start == req.end)
         {
+            // if there is no request, sleep for a second to save computational power
             sleep(1);
         }
         else
         {
             // Request req = *(Request*) request;
             char out_buffer[PACKET_RESPONSE_SIZE];
+
+            // Check if hash already solved and in cache
             uint64_t value = oldHashCheck(req.hash, oldHashResults);
-            //int value = -1;
             if (value != -1) {
                 memcpy(out_buffer, &value, sizeof(out_buffer));
                 write(req.con, out_buffer, sizeof(out_buffer));
             } else {
                 uint64_t ret = reversehash(req.start, req.end, req.hash);
-
-                if (ret < (uint64_t)0)
-                {
-                    printf("idk man\n");
-                }
                 ret = htobe64(ret);
 
                 // Add hash to cache
@@ -87,10 +83,8 @@ void *hashThread(void *input)
             }
 
         }
-        // sleep(1);
     }
-
-    // free(out_buffer);
+    
     pthread_exit(NULL);
     return NULL;
 }
@@ -121,10 +115,12 @@ int main(int argc, char **argv)
     
     bzero(&servaddr, sizeof(servaddr));
 
+    // Extra argument for number of threads if needed to testing
     portno = atoi(argv[1]);
     if (argc <= 2)
     {
-        threads = 8;
+        // Default value
+        threads = 5;
     }
     else
     {
@@ -178,17 +174,16 @@ int main(int argc, char **argv)
 
     for (int i = 0; i < threads; ++i)
     {
+        // Data structure conatining thread input parameters
         Lort *lort = (Lort *)malloc(sizeof(Lort));
-        //(*lort).arg1=anchor_node;
-        //Lort templort = *lort;
         (*lort).arg1 = anchor_node;
         (*lort).arg2 = i;
         (*lort).oldHashResults = oldHashResults;
-        //Lort *lort_pointer = lort;
         pthread_t thread_id = i;
         pthread_create(&thread_id, NULL, hashThread, lort);
     }
 
+    // Keep listening while connection is active
     while (connfd)
     {
         if (connfd < 0)
@@ -199,34 +194,22 @@ int main(int argc, char **argv)
         else
         {
             Request req = new_request(connfd);
-            printf("New request! \n");
             bzero(out_buffer, PACKET_RESPONSE_SIZE);
+
+            // Check if hash already in cache 
             uint64_t value = oldHashCheck(req.hash, oldHashResults);
             if (value != -1) {
-                printf("SAME!");
                 memcpy(out_buffer, &value, sizeof(out_buffer));
                 write(req.con, out_buffer, sizeof(out_buffer));
             } else {
+                // Add request to the list
                 Request_node *new_node = create_node(req);
                 insert_node(anchor_node, new_node);
             }
-
-            // uint64_t ret = reversehash(req.start, req.end, req.hash);
-            // if(ret < (uint64_t)0) {
-            //     printf("idk man\n");
-            // }
-            // ret = htobe64(ret);
-            // memcpy(out_buffer, &ret,sizeof(out_buffer));
-            // write(connfd,out_buffer,sizeof(out_buffer));
-
-            // pthread_t thread_id;
-            // pthread_create(&thread_id,NULL,hashThread,&req);
-            // pthread_join(thread_id,NULL);
         }
         connfd = accept(sockfd, (SA *)&cli, &len);
     }
     delete_node(anchor_node);
 
-    // After chatting close the socket
     close(sockfd);
 }

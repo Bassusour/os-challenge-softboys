@@ -14,12 +14,8 @@ Request_node * create_anchor_node(){
     Request_node *node = (Request_node *)malloc(sizeof(Request_node));
     node->next = NULL;
 
-    pthread_mutexattr_t mutex_attr;
 
-    pthread_mutexattr_init(&mutex_attr);
-    pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
-
-    pthread_mutex_init(&mutex_lock,&mutex_attr);
+    pthread_mutex_init(&mutex_lock,NULL);
 
     //spinlock_init(lock_pointer);
 
@@ -46,51 +42,22 @@ void delete_node(Request_node *node) {
 Request_node *insert_node(Request_node *head, Request_node *node) {
     // spinlock_lock(lock_pointer);
     pthread_mutex_lock(&mutex_lock);
-    //printf("start insert \n");
 
     if(head->next == NULL){
-        // printf("in here start insert \n");
-
         head->next = node;
-        // printf("in h2ere start insert \n");
-
         node->next = NULL;
-        // printf("in he3re start insert \n");
-
-        // Request_node *next = head->next;
-
-        // while (next != NULL)
-        // {
-        //     printf("- %d", next->req.priority );
-        //     next = next->next;
-        // }
-
-        // printf("\n");
-
 
         pthread_mutex_unlock(&mutex_lock);
-        //printf("end insert \n");
         // spinlock_unlock(lock_pointer);
-        // printf("in he4re start insert \n");
 
         return head;
     }
-
 
     Request_node *temp = head->next;
-    
-    if(temp == NULL){
-
-        head->next = node;
-        node->next = temp;
-        pthread_mutex_unlock(&mutex_lock);
-        //printf("end insert \n");    
-       // spinlock_unlock(lock_pointer);
-
-        return head;
-    }
 
     Request_node *prev = head;
+
+    // Inserting higher priority higher in the stack or in the end of it in case of lowest priority
     while (temp->req.priority > node->req.priority && temp->next != NULL)
     {
         prev = prev->next;
@@ -98,25 +65,9 @@ Request_node *insert_node(Request_node *head, Request_node *node) {
     }
     node->next = temp;
     prev->next = node;
-    
 
-
-    // Request_node *temp = head->next;
-    // head->next = node;
-    // node->next = temp;
 
     // spinlock_unlock(lock_pointer);
-
-    // Request_node *next = head->next;
-
-    // while (next != NULL)
-    // {
-    //     printf("- %d", next->req.priority );
-    //     next = next->next;
-    // }
-
-    // printf("\n");
-
     pthread_mutex_unlock(&mutex_lock);
 
     return head;
@@ -124,42 +75,24 @@ Request_node *insert_node(Request_node *head, Request_node *node) {
 
 Request get_resuest(Request_node *head) {
     // spinlock_lock(lock_pointer);
-    //printf("try get unlock %d \n", id);
     pthread_mutex_lock(&mutex_lock);
-    //printf("succedd get unlock %d \n", id );
 
-
-    // Request_node *next = head->next;
-
-    // printf("start get %d \n", id);
-    
-    // while (next != NULL)
-    // {
-    //     printf("-- %d", next->req.priority );
-    //     next = next->next;
-    // }
-
-    // printf("\n");
-
-    //printf("start get %d \n", id);
+    // If the list has no request (Only the anchor node)
     if(head->next == NULL){
-        //printf("in get %d \n", id);
         Request req;
         req.start = 1;
         req.end = 1;
         pthread_mutex_unlock(&mutex_lock);
-        //printf("-----------------------------------end get empty %d \n", id);
         return req;
     }
-    //printf("in get %d \n", id);
+
+    // Pop request from the request stack returning it for processing
     Request_node * next_node = head->next;
     Request req = next_node->req;
     head->next = next_node->next;
     delete_node(next_node);
-    //printf("took node with pri %d \n", req.priority);
     // spinlock_unlock(lock_pointer);
     pthread_mutex_unlock(&mutex_lock);
-    //printf("-----------------------------------end get %d \n", id);
     return req;
 }
 
