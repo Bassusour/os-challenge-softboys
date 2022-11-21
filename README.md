@@ -173,6 +173,7 @@ A scheduler works so that it chooses which tasks to be executed at a certain tim
 In this experiment, we will test the pseudo scheduler against the main with 4 threads.
 The git branch for this experiment is the newest commit on the prioritythread branch.
 The parameter for the client in the experiment is as follows:
+
 - Total: 100
 - Start: 0
 - Difficulty: 30000000
