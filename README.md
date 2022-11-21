@@ -172,7 +172,6 @@ An attempt at getting a higher score we had the idea that a thread with high pri
 A scheduler works so that it chosses wich tasks to be executed at a certain time. Some schedulers also takes into account priority. In this experiment we will divide each incoming request into smaller segements and utilise the existing priority structure to store them. This means that when a request arives there is made a set of request in this experiment 4. Each containing a fouth of the search spectrum for the hash request. In this way a new incoming high priotiy thread will have to wait for a shorter duration of time before being handeled.
 
 In this experiment we will test the pseudo scheduler against the main with 4 threads.
-The git branch for this experiment is the newest commit on the prioritythread branch.
 The parementer for the client in the experiment is as follows:
 - Total: 100
 - Start: 0
