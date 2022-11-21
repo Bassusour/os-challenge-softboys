@@ -120,7 +120,7 @@ int main(int argc, char **argv)
     if (argc <= 2)
     {
         // Default value
-        threads = 5;
+        threads = 4;
     }
     else
     {
